@@ -2,7 +2,7 @@
 
 A modern, multi-level take on the classic Snake game — built with vanilla HTML5, CSS, and JavaScript. No build step, no dependencies, no external assets: every visual and sound effect is drawn/synthesized at runtime.
 
-**Play it live:** https://bear0053.github.io/snake-io/
+**Play it live:** https://lanternforgestudios.github.io/snake-odyssey/
 
 ## Features
 
