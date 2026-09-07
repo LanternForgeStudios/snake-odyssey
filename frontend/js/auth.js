@@ -21,25 +21,26 @@ import { firebaseConfig, appCheckSiteKey, appCheckDebugToken } from "./firebase-
 
 export const app = initializeApp(firebaseConfig);
 
-// App Check: real reCAPTCHA Enterprise attestation on GitHub Pages/itch.io, a fixed
-// debug token when running against the emulators (tests/cloud/) so that suite keeps
-// working once the Cloud Functions turn on enforceAppCheck (see backend/README.md).
-// Must run before getAuth/getFunctions so their calls pick up the App Check token from
-// the start. Deliberately NOT enabled on plain localhost (outside the emulator flag):
-// initializeAppCheck's own token fetch runs on init regardless of
-// isTokenAutoRefreshEnabled, and the debug token isn't registered in the Firebase
-// Console until App Check setup is finished (see README's App Check section) - doing
-// this unconditionally logged a "Failed to load resource...403" on every page load and
-// broke the plain `pytest tests/` suite's zero-console-errors check, even though those
-// tests never touch real backend/auth calls. Setting FIREBASE_APPCHECK_DEBUG_TOKEN makes
-// the SDK use that debug token instead of contacting reCAPTCHA regardless of which
+// App Check: real reCAPTCHA Enterprise attestation on real domains (GitHub
+// Pages/itch.io), a fixed debug token when running against the emulators
+// (tests/cloud/) so that suite keeps working once the Cloud Functions turn on
+// enforceAppCheck (see backend/README.md). Must run before getAuth/getFunctions so
+// their calls pick up the App Check token from the start. Deliberately excludes plain
+// localhost (outside the emulator flag): initializeAppCheck's own token fetch runs on
+// init regardless of isTokenAutoRefreshEnabled, and localhost isn't an allowed domain
+// for the reCAPTCHA Enterprise key (nor should it be) - attempting real attestation
+// there logged a "Failed to load resource...403" on every page load and broke the
+// plain `pytest tests/` suite's zero-console-errors check, even though those tests
+// never touch real backend/auth calls. Setting FIREBASE_APPCHECK_DEBUG_TOKEN makes the
+// SDK use that debug token instead of contacting reCAPTCHA regardless of which
 // provider/site key is passed below. Guarded the same way the rest of this file
 // tolerates a CDN/network hiccup - a failed init degrades to "no App Check token"
 // rather than breaking sign-in.
+const isLocalhost = location.hostname === "localhost" || location.hostname === "127.0.0.1";
 if (window.__USE_FIREBASE_EMULATORS__) {
   self.FIREBASE_APPCHECK_DEBUG_TOKEN = appCheckDebugToken;
 }
-if (window.__USE_FIREBASE_EMULATORS__ || appCheckSiteKey) {
+if (window.__USE_FIREBASE_EMULATORS__ || (appCheckSiteKey && !isLocalhost)) {
   try {
     initializeAppCheck(app, {
       provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey || "debug-mode-unused-key"),

@@ -17,7 +17,7 @@ export const firebaseConfig = {
 // initializeAppCheck() when this is non-empty, so leaving it blank is always safe to
 // deploy - App Check simply stays off there. It's used unconditionally for the
 // emulator-backed test suite (tests/cloud/), which relies on appCheckDebugToken instead.
-export const appCheckSiteKey = "";
+export const appCheckSiteKey = "6Lc9ea0tAAAAAHqaiDzvec1gt6dm6aM5YP-OEmaC";
 
 // Fixed debug token so the emulator-backed pytest suite (tests/cloud/, --cloud flag)
 // passes App Check enforcement without real reCAPTCHA attestation. Register this exact
