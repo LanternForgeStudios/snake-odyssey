@@ -25,7 +25,7 @@ function defaultProfile(authToken) {
  * Creates a cloud profile on first sign-in, or loads + touches lastLoginAt on return visits.
  * Spec 10.1, 11.1-11.2, 19.1.
  */
-export const getOrCreatePlayerProfile = onCall(async (request) => {
+export const getOrCreatePlayerProfile = onCall({ enforceAppCheck: true }, async (request) => {
   const uid = requireAuth(request);
   const ref = db.collection("players").doc(uid);
   const snap = await ref.get();
@@ -46,7 +46,7 @@ export const getOrCreatePlayerProfile = onCall(async (request) => {
  * Spec 19.4: only a controlled, backend-validated path may change a player's selected
  * snake - the frontend can request it, but the backend decides whether it's allowed.
  */
-export const selectSnake = onCall(async (request) => {
+export const selectSnake = onCall({ enforceAppCheck: true }, async (request) => {
   const uid = requireAuth(request);
   const { skinId } = request.data ?? {};
   if (!isSkinIdValid(skinId)) {

@@ -1,0 +1,43 @@
+name: Deploy to itch.io
+
+# Publishes the static game (index.html + frontend/) to
+# https://lanternforgestudios.itch.io/snake-odyssey whenever those files change on
+# main - mirrors GitHub Pages, which already serves the same files straight from
+# main with no build step.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "frontend/**"
+      - ".github/workflows/deploy-itch.yml"
+  workflow_dispatch:
+
+jobs:
+  push-to-itch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Stage game files
+        run: |
+          mkdir -p build
+          cp index.html build/
+          cp -r frontend build/
+
+      - name: Install butler
+        run: |
+          curl -L -o butler.zip https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default
+          unzip -o butler.zip -d butler-bin
+          chmod +x butler-bin/butler
+          ./butler-bin/butler -V
+
+      - name: Push build to itch.io
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_CREDENTIALS }}
+        run: |
+          ./butler-bin/butler push build lanternforgestudios/snake-odyssey:html5 \
+            --userversion "$(git rev-parse --short HEAD)"

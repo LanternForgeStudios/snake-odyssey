@@ -90,6 +90,16 @@ being sufficient.
 - The Cloud Functions emulator can occasionally report
   `Cannot determine backend specification. Timeout after 10000ms` on a slow first load -
   set `FUNCTIONS_DISCOVERY_TIMEOUT=60000` (or higher) before starting the emulators.
+- **Every callable function has `enforceAppCheck: true`, which the Functions emulator
+  enforces for real** - it doesn't trust an unregistered debug token locally; it calls
+  out to the real App Check backend to verify it, the same as production. Register the
+  fixed token from `frontend/js/firebase-config.js`'s `appCheckDebugToken` in Firebase
+  Console > App Check > Apps > (web app) > Manage debug tokens *before* `pytest tests/
+  --cloud` will pass - an unregistered token fails closed with 401/403s on every callable
+  request (confirmed by running the suite: sign-up hung waiting for the HUD because every
+  backend call was being rejected). This has nothing to do with whether App Check is
+  enforced on the *deployed* functions yet - the emulator runs from local source, so it
+  enforces whatever `backend/functions/src/` currently says regardless of production.
 - **Each callable function needs its own CORS warm-up from a real browser, not just a
   listening port.** A plain GET/POST succeeding doesn't mean a browser's actual preflight
   OPTIONS request will - the first real preflight to a freshly-started emulator

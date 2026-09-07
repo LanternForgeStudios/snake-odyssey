@@ -24,7 +24,7 @@ function sanitizeSettings(settings) {
  * a freshly authenticated profile. Never imports unlocks, Level Mode progress, or
  * achievements - those begin fresh from the authenticated profile's default state.
  */
-export const importGuestData = onCall(async (request) => {
+export const importGuestData = onCall({ enforceAppCheck: true }, async (request) => {
   const uid = requireAuth(request);
   const { classicHighScore, endlessHighScore, settings } = request.data ?? {};
 

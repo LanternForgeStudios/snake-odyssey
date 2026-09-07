@@ -2,7 +2,7 @@
 
 A modern, multi-level take on the classic Snake game — built with vanilla HTML5, CSS, and JavaScript. No build step, no dependencies, no external assets: every visual and sound effect is drawn/synthesized at runtime.
 
-**Play it live:** https://lanternforgestudios.github.io/snake-odyssey/
+**Play it live:** https://lanternforgestudios.github.io/snake-odyssey/ (GitHub Pages) or https://lanternforgestudios.itch.io/snake-odyssey (itch.io)
 
 ## Features
 
@@ -59,6 +59,41 @@ Signing up for the first time offers to import your guest device's local Classic
 
 Achievements (First Bite, Century Club, First Steps, World Explorer, Snake Collector, Endless Legend, Dedicated) are computed entirely server-side from the cloud profile's lifetime stats and progression — there's no client-side achievement logic to tamper with.
 
+## Deployment
+
+The static game (`index.html` + `frontend/`) auto-deploys on every push to `main`:
+
+- **GitHub Pages** — served directly from the branch root, no build/workflow needed.
+- **itch.io** (`lanternforgestudios/snake-odyssey`) — `.github/workflows/deploy-itch.yml`
+  stages those same files and pushes them with [Butler](https://itch.io/docs/butler/) to
+  the `html5` channel, authenticated via the `BUTLER_CREDENTIALS` repo secret.
+
+`backend/` (Cloud Functions, Firestore rules) deploys independently and manually — see
+`backend/README.md` and the `deploy_backend` skill.
+
+### App Check
+
+Firebase App Check (reCAPTCHA Enterprise) is wired into the frontend
+(`frontend/js/auth.js`/`firebase-config.js`) and the Cloud Functions
+(`enforceAppCheck: true` on every callable in `backend/functions/src/`), but is
+**inert until finished in the Firebase Console**:
+
+1. App Check > Apps > register the web app > reCAPTCHA Enterprise — copy the resulting
+   site key into `frontend/js/firebase-config.js`'s `appCheckSiteKey` (empty = App Check
+   never initializes on real domains, so this is safe to leave blank).
+2. App Check > Apps > (web app) > Manage debug tokens — register the fixed token in
+   `appCheckDebugToken` (`firebase-config.js`) so the emulator-backed `pytest tests/
+   --cloud` suite passes App Check once the Cloud Functions enforce it (see
+   backend/README.md's Gotchas).
+3. Add the domain(s) that actually serve the game to both the reCAPTCHA Enterprise key's
+   allowed domains *and* Firebase Auth's Authorized Domains: `lanternforgestudios.github.io`
+   plus itch.io's actual serving domain — itch.io runs HTML5 games in an iframe off an
+   `*.itch.zone`/`hwcdn.net` CDN domain, not `lanternforgestudios.itch.io` itself, so
+   check the iframe's real `src` (devtools) once the game is live there.
+4. Only once 1-3 are confirmed working should the backend be redeployed to make
+   `enforceAppCheck: true` take effect in production (`deploy_backend` skill) — deploying
+   it before the frontend can actually attach a valid token would lock out every player.
+
 ## Running Locally
 
 Because the game uses ES module imports (`<script type="module">`), it needs to be served over `http://` rather than opened directly as a `file://` URL (browsers block module imports from the filesystem).
@@ -99,8 +134,8 @@ frontend/
     input.js                   Keyboard, swipe, and D-pad input handling
     audio.js                    Procedural SFX and per-theme music
     storage.js                   Guest localStorage + cached cloud-profile save/load (see Cloud Accounts above)
-    firebase-config.js            Public Firebase web app config
-    auth.js                        Firebase Authentication wiring (sign in/up/out, session state)
+    firebase-config.js            Public Firebase web app config + App Check site key/debug token
+    auth.js                        Firebase Authentication wiring (sign in/up/out, session state) + App Check init
     backend.js                      Cloud Functions client wrapper (sessions, submissions, leaderboard, etc.)
     avatars.js                       Preset avatar gallery for email/password sign-up
     achievements.js                    Achievement display metadata (id/name/description) -
@@ -108,6 +143,8 @@ frontend/
     ui.js                             Screen population and HUD updates
     resize.js                          Responsive canvas sizing
 backend/              Firebase Cloud Functions, Firestore rules, and cloud backend config - see backend/README.md
+.github/workflows/
+  deploy-itch.yml        Pushes index.html + frontend/ to itch.io via Butler on every push to main
 tests/                How to serve and browser-test this project (Playwright + system Chrome)
   conftest.py          Shared fixtures: dev server, browser, and a fresh page per test
   helpers.py            Save-data builders and debug-hook helpers (see Testing, below)

@@ -10,7 +10,7 @@ const LEADERBOARD_LIMIT = 50;
  * scores, audit notes, or other private profile fields - just what's needed to render
  * a rank list.
  */
-export const getLeaderboard = onCall(async (request) => {
+export const getLeaderboard = onCall({ enforceAppCheck: true }, async (request) => {
   requireAuth(request); // leaderboards are readable by any signed-in player (21.1), not guests
   const { mode } = request.data ?? {};
   if (!LEADERBOARD_MODES.has(mode)) {

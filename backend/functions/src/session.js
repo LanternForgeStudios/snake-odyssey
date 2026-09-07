@@ -16,7 +16,7 @@ const SESSION_RATE_LIMIT_MAX = 20;
  * Spec 19.2, 26.2: creates a server-side session before any authenticated run that can
  * affect trusted progression. The frontend may only begin gameplay after this succeeds.
  */
-export const startGameSession = onCall(async (request) => {
+export const startGameSession = onCall({ enforceAppCheck: true }, async (request) => {
   const uid = requireAuth(request);
   const { mode, levelId = null, skinId, clientVersion = null } = request.data ?? {};
 
@@ -154,7 +154,7 @@ async function applyAcceptedResult({ uid, session, submission, flagged }) {
  * cloud progression. The frontend never writes highScores/unlockedSkins/leaderboards
  * directly - this function is the only path.
  */
-export const submitGameResult = onCall(async (request) => {
+export const submitGameResult = onCall({ enforceAppCheck: true }, async (request) => {
   const uid = requireAuth(request);
   const { sessionId, score, foodCollected, completed = false, clientVersion = null } = request.data ?? {};
 
