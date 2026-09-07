@@ -67,7 +67,6 @@ export function createGame({ level, mode, skinId, difficulty }) {
   const game = {
     level: adjLevel,
     mode,
-    difficulty,
     snake,
     foods: [],
     powerUps: [],

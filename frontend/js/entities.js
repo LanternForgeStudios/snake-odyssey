@@ -24,7 +24,6 @@ export class Snake {
     this.pendingGrowth = 0;
     this.skinId = skinId;
     this.activeEffects = [];
-    this.alive = true;
     this.trailParticles = [];
   }
 
@@ -34,10 +33,6 @@ export class Snake {
     if (isOpposite(dir, last)) return;
     if (this.pendingDirections.length >= 2) return;
     this.pendingDirections.push(dir);
-  }
-
-  hasEffect(type) {
-    return this.activeEffects.some(e => e.type === type);
   }
 
   head() {
@@ -65,10 +60,6 @@ export function makePowerUp(x, y, type) {
 
 export function makeObstacle(x, y, type, dangerous) {
   return { x, y, type, dangerous, seed: Math.random() };
-}
-
-export function cellsEqual(a, b) {
-  return a.x === b.x && a.y === b.y;
 }
 
 export function isCellFree(x, y, gridSize, occupied) {
